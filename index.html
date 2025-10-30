@@ -1,88 +1,59 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Player YouTube Automático com Som (Desbloqueado)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-            background: #111;
-            color: #fff;
-        }
-        #player {
-            margin: 20px auto;
-            width: 640px;
-            height: 360px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(255,0,0,0.3);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teletube Player</title>
+  <style>
+    body {
+      background-color: black;
+      margin: 0;
+      overflow: hidden;
+    }
+    #player {
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
-    <h1>🎬 YouTube Player Automático com Som</h1>
-    <div id="player"></div>
+  <div id="player"></div>
 
-    <script>
-        let player;
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    var player;
 
-        // Função que "desbloqueia" o áudio criando um som vazio
-        function desbloquearSomAutomaticamente() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const buffer = audioCtx.createBuffer(1, 1, 22050);
-                const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.connect(audioCtx.destination);
-                source.start(0);
-                console.log("🔊 Áudio desbloqueado via AudioContext.");
-            } catch (e) {
-                console.warn("Falha ao desbloquear som:", e);
-            }
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        videoId: 'XRN9OhmYwfI', // apenas o ID do vídeo
+        host: 'https://www.youtube-nocookie.com', // Usa o domínio sem cookies para o embed
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          mute: 1,          // inicia mudo (obrigatório para autoplay funcionar)
+          playsinline: 1,
+          rel: 0,
+          fs: 1,
+          origin: window.location.origin, // Usa .origin pra incluir protocolo[](http://localhost:8000)
+          referrer: document.referrer || window.location.href // Reforça o referrer
+        },
+        events: {
+          onReady: onPlayerReady,
+          onError: function(event) {
+            console.error('Erro do player:', event.data); // Log do erro pra debug
+          }
         }
+      });
+    }
 
-        // Chama o desbloqueio o mais cedo possível
-        desbloquearSomAutomaticamente();
-
-        // Carrega a API do YouTube
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
-
-        // Cria o player
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                videoId: 'DYXm77Xo8JI', // substitua pelo ID do vídeo desejado
-                host: 'https://www.youtube-nocookie.com',
-                playerVars: {
-                    autoplay: 1,
-                    controls: 1,
-                    playsinline: 1,
-                    enablejsapi: 1,
-                    mute: 0 // som ativado
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onError': onPlayerError
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            // Força o play e garante som
-            setTimeout(() => {
-                event.target.unMute();
-                event.target.setVolume(100);
-                event.target.playVideo();
-                console.log("▶️ Vídeo iniciado automaticamente com som!");
-            }, 500);
-        }
-
-        function onPlayerError(event) {
-            console.error("Erro do YouTube:", event.data);
-        }
-    </script>
+    function onPlayerReady(event) {
+      event.target.playVideo();
+      // após 2 segundos, liga o som
+      setTimeout(() => {
+        event.target.unMute();
+        event.target.setVolume(100);
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
