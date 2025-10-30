@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Player YouTube Automático com Som</title>
+    <title>Player YouTube Automático com Som (Desbloqueado)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,31 +19,32 @@
             overflow: hidden;
             box-shadow: 0 0 20px rgba(255,0,0,0.3);
         }
-        #unlockBtn {
-            display: block;
-            margin: 20px auto;
-            padding: 20px 40px;
-            font-size: 20px;
-            background: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        #unlockBtn:hover { background: #cc0000; }
-        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <h1>🎵 Player Automático com Som</h1>
+    <h1>🎬 YouTube Player Automático com Som</h1>
     <div id="player"></div>
-    <button id="unlockBtn" onclick="unlockAudio()">🔊 Clique Aqui para Ativar o Som (Só Uma Vez!)</button>
 
     <script>
-        // Verifica se o áudio já foi desbloqueado em visitas anteriores
-        const isUnlocked = localStorage.getItem('audioUnlocked') === 'true';
         let player;
+
+        // Função que "desbloqueia" o áudio criando um som vazio
+        function desbloquearSomAutomaticamente() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start(0);
+                console.log("🔊 Áudio desbloqueado via AudioContext.");
+            } catch (e) {
+                console.warn("Falha ao desbloquear som:", e);
+            }
+        }
+
+        // Chama o desbloqueio o mais cedo possível
+        desbloquearSomAutomaticamente();
 
         // Carrega a API do YouTube
         const tag = document.createElement('script');
@@ -53,15 +54,14 @@
         // Cria o player
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                videoId: 'DYXm77Xo8JI', // coloque o ID do seu vídeo
+                videoId: 'DYXm77Xo8JI', // substitua pelo ID do vídeo desejado
                 host: 'https://www.youtube-nocookie.com',
-                origin: window.location.origin,
                 playerVars: {
                     autoplay: 1,
                     controls: 1,
                     playsinline: 1,
                     enablejsapi: 1,
-                    mute: !isUnlocked // Mudo se o som ainda não foi liberado
+                    mute: 0 // som ativado
                 },
                 events: {
                     'onReady': onPlayerReady,
@@ -71,36 +71,17 @@
         }
 
         function onPlayerReady(event) {
-            event.target.playVideo();
-            console.log('🎬 Vídeo iniciado');
-
-            if (isUnlocked) {
-                // Se já foi desbloqueado antes, ativa som automaticamente
-                setTimeout(() => {
-                    player.unMute();
-                    player.setVolume(100);
-                    document.getElementById('unlockBtn').classList.add('hidden');
-                    console.log('🔊 Som automático ativado');
-                }, 500);
-            }
-        }
-
-        // Quando o usuário clica para liberar o som pela primeira vez
-        function unlockAudio() {
-            if (player) {
-                player.unMute();
-                player.setVolume(100);
-                player.playVideo();
-
-                localStorage.setItem('audioUnlocked', 'true');
-                document.getElementById('unlockBtn').classList.add('hidden');
-
-                console.log('✅ Som liberado permanentemente!');
-            }
+            // Força o play e garante som
+            setTimeout(() => {
+                event.target.unMute();
+                event.target.setVolume(100);
+                event.target.playVideo();
+                console.log("▶️ Vídeo iniciado automaticamente com som!");
+            }, 500);
         }
 
         function onPlayerError(event) {
-            console.error('Erro do player:', event.data);
+            console.error("Erro do YouTube:", event.data);
         }
     </script>
 </body>
