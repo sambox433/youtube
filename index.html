@@ -1,65 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Player YouTube Automático</title>
+    <meta charset="UTF-8">
+    <title>Player YouTube Automático com Som</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: #111;
+            color: #fff;
+        }
+        #player {
+            margin: 20px auto;
+            width: 640px;
+            height: 360px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255,0,0,0.3);
+        }
+        #unlockBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 20px 40px;
+            font-size: 20px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #unlockBtn:hover { background: #cc0000; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-    <!-- O player substituirá esta div -->
+    <h1>🎵 Player Automático com Som</h1>
     <div id="player"></div>
+    <button id="unlockBtn" onclick="unlockAudio()">🔊 Clique Aqui para Ativar o Som (Só Uma Vez!)</button>
 
     <script>
-        // Carrega a API do YouTube de forma assíncrona (mantém o domínio padrão para o script, mas player usa nocookie)
-        var tag = document.createElement('script');
+        // Verifica se o áudio já foi desbloqueado em visitas anteriores
+        const isUnlocked = localStorage.getItem('audioUnlocked') === 'true';
+        let player;
+
+        // Carrega a API do YouTube
+        const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        document.head.appendChild(tag);
 
-        // Variável global para o player
-        var player;
-
-        // Função chamada quando a API estiver pronta
+        // Cria o player
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '390',
-                width: '640',
-                videoId: 'DYXm77Xo8JI',  // ID do seu vídeo
-                host: 'https://www.youtube-nocookie.com',  // Fix para Erro 153: Usa domínio privacidade aprimorada
+                videoId: 'DYXm77Xo8JI', // coloque o ID do seu vídeo
+                host: 'https://www.youtube-nocookie.com',
+                origin: window.location.origin,
                 playerVars: {
-                    'autoplay': 1,        // Ativa autoplay
-                    'playsinline': 1,     // Para mobile: reproduz inline
-                    'controls': 1,        // Mostra controles (opcional: 0 para esconder)
-                    'mute': 0             // Garante som ativado (0 = não mutado)
+                    autoplay: 1,
+                    controls: 1,
+                    playsinline: 1,
+                    enablejsapi: 1,
+                    mute: !isUnlocked // Mudo se o som ainda não foi liberado
                 },
                 events: {
                     'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError  // Adicionado para logar erros
+                    'onError': onPlayerError
                 }
             });
         }
 
-        // Quando o player estiver pronto, inicia o vídeo
         function onPlayerReady(event) {
             event.target.playVideo();
-        }
+            console.log('🎬 Vídeo iniciado');
 
-        // Opcional: Monitora mudanças de estado
-        function onPlayerStateChange(event) {
-            // Exemplo: Para o vídeo após 30 segundos (remova se não quiser)
-            if (event.data == YT.PlayerState.PLAYING) {
-                setTimeout(function() {
-                    player.stopVideo();
-                }, 30000);
+            if (isUnlocked) {
+                // Se já foi desbloqueado antes, ativa som automaticamente
+                setTimeout(() => {
+                    player.unMute();
+                    player.setVolume(100);
+                    document.getElementById('unlockBtn').classList.add('hidden');
+                    console.log('🔊 Som automático ativado');
+                }, 500);
             }
         }
 
-        // Novo: Loga erros para debug (veja no console do navegador)
+        // Quando o usuário clica para liberar o som pela primeira vez
+        function unlockAudio() {
+            if (player) {
+                player.unMute();
+                player.setVolume(100);
+                player.playVideo();
+
+                localStorage.setItem('audioUnlocked', 'true');
+                document.getElementById('unlockBtn').classList.add('hidden');
+
+                console.log('✅ Som liberado permanentemente!');
+            }
+        }
+
         function onPlayerError(event) {
-            console.error('Erro no player:', event.data);
-            // Se for 153, avisa no console
-            if (event.data === 153) {
-                console.error('Erro 153: Verifique o referer/HTTPS ou use youtube-nocookie.com (já configurado).');
-            }
+            console.error('Erro do player:', event.data);
         }
     </script>
 </body>
