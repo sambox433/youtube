@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Player YouTube Automático</title>
+</head>
+<body>
+    <!-- O player substituirá esta div -->
+    <div id="player"></div>
+
+    <script>
+        // Carrega a API do YouTube de forma assíncrona (mantém o domínio padrão para o script, mas player usa nocookie)
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // Variável global para o player
+        var player;
+
+        // Função chamada quando a API estiver pronta
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: 'DYXm77Xo8JI',  // ID do seu vídeo
+                host: 'https://www.youtube-nocookie.com',  // Fix para Erro 153: Usa domínio privacidade aprimorada
+                playerVars: {
+                    'autoplay': 1,        // Ativa autoplay
+                    'playsinline': 1,     // Para mobile: reproduz inline
+                    'controls': 1,        // Mostra controles (opcional: 0 para esconder)
+                    'mute': 0             // Garante som ativado (0 = não mutado)
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError  // Adicionado para logar erros
+                }
+            });
+        }
+
+        // Quando o player estiver pronto, inicia o vídeo
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        // Opcional: Monitora mudanças de estado
+        function onPlayerStateChange(event) {
+            // Exemplo: Para o vídeo após 30 segundos (remova se não quiser)
+            if (event.data == YT.PlayerState.PLAYING) {
+                setTimeout(function() {
+                    player.stopVideo();
+                }, 30000);
+            }
+        }
+
+        // Novo: Loga erros para debug (veja no console do navegador)
+        function onPlayerError(event) {
+            console.error('Erro no player:', event.data);
+            // Se for 153, avisa no console
+            if (event.data === 153) {
+                console.error('Erro 153: Verifique o referer/HTTPS ou use youtube-nocookie.com (já configurado).');
+            }
+        }
+    </script>
+</body>
+</html>
